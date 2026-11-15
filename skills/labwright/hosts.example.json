@@ -1,0 +1,40 @@
+{
+  "floor_gb": 100,
+  "idle": {"gpu_busy_pct": 15},
+  "hosts": [
+    {
+      "name": "gpu-box",
+      "os": "windows",
+      "local": true,
+      "gpu": {"name": "RTX 4080", "vram_gb": 16},
+      "ram_gb": 64,
+      "speed": 2.5,
+      "roles": ["image", "video", "music", "llm", "train"],
+      "services": [
+        {"type": "comfyui", "url": "http://127.0.0.1:8188"},
+        {"type": "ollama", "url": "http://127.0.0.1:11434"}
+      ],
+      "stores": [
+        {"path": "E:/models", "kind": "comfyui-models"},
+        {"path": "E:/ollama/models", "kind": "ollama-models"}
+      ],
+      "notes": "ComfyUI and Ollama share one card; a loaded Ollama model takes VRAM from renders."
+    },
+    {
+      "name": "studio-mac",
+      "os": "macos",
+      "local": false,
+      "unified_gb": 32,
+      "speed": 1,
+      "roles": ["image", "music", "llm"],
+      "services": [
+        {"type": "comfyui", "url": "http://10.0.0.20:8188"},
+        {"type": "ollama", "url": "http://10.0.0.20:11434"}
+      ],
+      "stores": [
+        {"path": "/Users/owner/ComfyUI/models", "kind": "comfyui-models", "free_gb": 400, "free_checked": "2026-01-01"}
+      ],
+      "notes": "No SSH; health only through the HTTP APIs. Its /system_stats does not report free disk."
+    }
+  ]
+}

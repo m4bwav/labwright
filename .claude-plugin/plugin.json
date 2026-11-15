@@ -1,0 +1,11 @@
+{
+  "name": "labwright",
+  "version": "0.2.0",
+  "description": "The user's local AI servers (ComfyUI, Ollama) as one read-only pool: host registry, status and idle checks, where a model lives, which host to pick or queue on, where a download fits the disk floor, doctor for drift. lw.py hosts, status, where, pick, place, doctor.",
+  "skills": "./skills",
+  "author": {
+    "name": "m4bwav"
+  },
+  "repository": "https://github.com/m4bwav/labwright",
+  "license": "MIT"
+}

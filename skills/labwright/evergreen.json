@@ -1,0 +1,78 @@
+{
+  "evergreen": "1.0",
+  "name": "labwright",
+  "version": "0.2.0",
+  "kind": "skill",
+  "main": "SKILL.md",
+  "files": {
+    "research": "RESEARCH.md",
+    "changelog": "CHANGELOG.md",
+    "learnings": "LEARNINGS.md",
+    "tests": "TESTS.md"
+  },
+  "protocol": "plugin",
+  "source": null,
+  "topic": "Local AI model servers as a pool: ComfyUI and Ollama read APIs, nvidia-smi queries, disk placement",
+  "tier": "volatile",
+  "interval_days": 30,
+  "last_checked": "2026-11-15",
+  "next_due": "2026-12-15",
+  "verify_at_use": true,
+  "volatile_claims": [
+    {
+      "claim": "ComfyUI /system_stats, /queue and /models are GET endpoints with the shapes lw.py parses",
+      "checked": "2026-11-15",
+      "recheck_days": 30,
+      "repro": "lw.py status --json",
+      "verify_at_use": true
+    },
+    {
+      "claim": "Ollama /api/tags and /api/ps list installed and loaded models",
+      "checked": "2026-11-15",
+      "recheck_days": 30,
+      "repro": "lw.py status --json",
+      "verify_at_use": true
+    },
+    {
+      "claim": "ComfyUI /system_stats reports no free disk",
+      "checked": "2026-11-15",
+      "recheck_days": 60,
+      "repro": "GET /system_stats",
+      "verify_at_use": true
+    }
+  ],
+  "contradiction": null,
+  "events": [],
+  "streak": {
+    "quiet": 0,
+    "pinned_min": 0,
+    "pinned_max": 0,
+    "vau_quiet": 0
+  },
+  "history": [
+    {
+      "date": "2026-11-15",
+      "m": null,
+      "interval_after": 30,
+      "note": "created"
+    }
+  ],
+  "counts": {
+    "learnings": 14,
+    "changes": 1,
+    "research": 1,
+    "tests": 2
+  },
+  "consolidate_every": 25,
+  "tests": {
+    "last_run": "2026-11-15",
+    "harness": "claude-code (one agent per case, bare baseline) + python unittest",
+    "env": "baseline",
+    "cases": 16,
+    "passed": 12,
+    "failed": 0,
+    "failing": [],
+    "last_failure": null,
+    "research_after_days": null
+  }
+}

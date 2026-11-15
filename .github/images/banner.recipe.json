@@ -1,0 +1,26 @@
+{
+  "labwright": "banner",
+  "route": "comfyui",
+  "host": "local ComfyUI",
+  "model": "FLUX.3 Klein distilled (flux3-image-klein-int8-convrot) + qwen3vl_4b text encoder + flux2-vae",
+  "prompt": "Wide cinematic banner of a calm, tidy small home lab at dusk. On a long light wooden desk sit four small computers of different sizes (a compact mini PC, a small silver desktop, a little tower with a soft glowing fan, a slim laptop), each with a tiny status light, joined by neat glowing cables that meet in a small network switch so they read as one pool. Soft cool blue and warm amber light, a potted plant, a window with evening sky, quiet and orderly, painterly detailed illustration, plenty of calm empty space, clean uncluttered composition, no lettering, no text, no screens with words, no logos.",
+  "negative": "",
+  "seed": 51101,
+  "size": {
+    "w": 1536,
+    "h": 640
+  },
+  "steps": 16,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "output": {
+    "format": "jpeg",
+    "quality": 88
+  },
+  "candidates": [
+    51101,
+    51102,
+    51103
+  ]
+}
