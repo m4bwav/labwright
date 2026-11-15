@@ -22,7 +22,7 @@ The pool of the user's own model servers, read live. Host facts live in the regi
 - Before a model download: `LW place --size GB` ([placement](references/placement.md)); then check the model's licence and gating.
 - New machine, hardware change or odd results: `LW doctor`; record a hardware change in the registry and the shared environment file.
 
-lw.py only reads. Running, waiting on, stopping or restarting anything is the caller's job; another session's server is never stopped or restarted ([probes](references/probes.md)).
+lw.py only reads. Running, waiting on, stopping or restarting anything is the caller's job; another session's server is never stopped or restarted ([probes](references/probes.md)). Out of memory on a shared server: unload (ComfyUI `POST /free`), wait or lighten the job. Starting a stopped Ollama: set `OLLAMA_MODELS` to the registry's store first, or its models vanish.
 
 Neighbours: comfyui-gen runs image and video jobs; local-delegate offloads text to Ollama; quirkwright has real pids and wait loops (`qw.py wait`); musicwright and voicewright own their models.
 
