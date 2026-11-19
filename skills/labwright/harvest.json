@@ -1,8 +1,30 @@
 {
   "version": 1,
   "targets": [
-    {"kind": "web", "url": "https://github.com/comfyanonymous/ComfyUI/releases", "keep": "server routes: system_stats, queue, models"},
-    {"kind": "web", "url": "https://github.com/ollama/ollama/blob/main/docs/api.md", "keep": "tags and ps endpoints"},
-    {"kind": "reddit", "sub": "comfyui", "keep": "sharing one GPU with Ollama or training; multi-host setups"}
+    {
+      "kind": "web",
+      "url": "https://github.com/comfyanonymous/ComfyUI/releases",
+      "keep": "server routes: system_stats, queue, models"
+    },
+    {
+      "kind": "web",
+      "url": "https://github.com/ollama/ollama/blob/main/docs/api.md",
+      "keep": "tags and ps endpoints"
+    },
+    {
+      "kind": "reddit",
+      "sub": "comfyui",
+      "keep": "sharing one GPU with Ollama or training; multi-host setups"
+    },
+    {
+      "kind": "github",
+      "query": "comfyui gguf",
+      "keep": "top 10 by stars; new entries and their owners' repos become harvest targets"
+    },
+    {
+      "kind": "github",
+      "url": "https://github.com/city96/ComfyUI-GGUF",
+      "keep": "comfyui-top10 harvest seed O6; new nodes, releases and the owner's (city96) other repos"
+    }
   ]
 }
