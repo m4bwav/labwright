@@ -1,7 +1,7 @@
 {
   "evergreen": "1.0",
   "name": "labwright",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "kind": "skill",
   "main": "SKILL.md",
   "files": {
