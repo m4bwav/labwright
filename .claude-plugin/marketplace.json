@@ -10,7 +10,7 @@
     {
       "name": "labwright",
       "source": "./",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "description": "The user's local AI servers (ComfyUI, Ollama) as one read-only pool: host registry, status and idle checks, where a model lives, which host to pick or queue on, where a download fits the disk floor, doctor for drift. lw.py hosts, status, where, pick, place, doctor."
     }
   ]
