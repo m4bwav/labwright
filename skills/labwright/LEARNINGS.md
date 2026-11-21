@@ -16,5 +16,6 @@ Lessons that shaped [SKILL.md](SKILL.md) and lw.py. Seeded 2026-11-15 from a har
 - L-012 `never-restart-shared` · 2026-11-15 · several skills [41, 45, 50] · Restarting or killing by image name ended other sessions' servers. · lw.py has no write or process control (tested); the agent stops only what it started, by pid.
 - L-013 `127-not-localhost` · 2026-11-15 · environment profile [44] · localhost can cost seconds per call on IPv6-first hosts. · Registry URLs use 127.0.0.1.
 - L-014 `vram-held-is-not-load` · 2026-11-15 · first real run · An idle ComfyUI holds most of the card's memory in cached weights at 0% load, and on Windows nvidia-smi lists desktop apps as processes. · Busy is decided by load, queue and loaded models, not memory held or process count.
+- L-015 `up-is-not-ready` · 2026-11-21 · Nygard, Release It! ch. 13, ch. 5 "Handshaking" · A port that answers is not a host ready for work: one being drained or with a long queue makes callers discover overload by timing out. · `ready` only when idle and not draining; `idle.max_pending` makes `pick` shed instead of queue.
 
 Not taken (owned by neighbours): HF download habits [24], Manager installs [25], empty extra_model_paths crash [27], VRAM unload [33], Ollama cold-load 500 [34], watchdogs [38], start-command fixes [40-43], msys pids and reboot checks [46, 47].

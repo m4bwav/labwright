@@ -200,6 +200,37 @@ class TestPick(Base):
         self.assertEqual(r["action"], "none")
         self.assertIn("down", r["why"])
 
+    def test_draining_host_is_up_but_not_ready_and_skipped(self):
+        self.srv.comfy("a")
+        self.srv.comfy("b")
+        drain = self.host("fast", "a", speed=9)
+        drain["draining"] = True
+        reg = self.reg([drain, self.host("slow", "b")])
+        st = lw.host_status(drain, reg)
+        self.assertEqual((st["state"], st["ready"]), ("draining", False))
+        r = lw.pick(reg, "image")
+        self.assertEqual(r["hosts"], ["slow"])
+        self.assertIn("draining", r["excluded"]["fast"])
+        self.assertTrue(lw.host_status(self.host("slow", "b"), reg)["ready"])
+
+    def test_only_draining_host_means_none(self):
+        self.srv.comfy("a")
+        h = self.host("a", "a")
+        h["draining"] = True
+        r = lw.pick(self.reg([h]), "image")
+        self.assertEqual(r["action"], "none")
+
+    def test_full_queue_sheds_load_instead_of_queue(self):
+        self.srv.comfy("a", running=1, pending=4)
+        reg = self.reg([self.host("a", "a")])
+        self.assertEqual(lw.pick(reg, "image")["action"], "queue")
+        reg["idle"] = {"max_pending": 3}
+        r = lw.pick(reg, "image")
+        self.assertEqual(r["action"], "none")
+        self.assertIn("shed", r["why"])
+        reg["idle"] = {"max_pending": 10}
+        self.assertEqual(lw.pick(reg, "image")["action"], "queue")
+
     def test_no_capable_host(self):
         r = lw.pick(self.reg([self.host("a", "a", roles=("llm",))]), "video")
         self.assertEqual(r["action"], "none")
@@ -262,6 +293,13 @@ class TestDoctorAndRegistry(Base):
                          {"name": "a"}]}
         probs = lw.validate(bad)
         self.assertEqual(len(probs), 3)
+
+    def test_schema_version(self):
+        ok = {"hosts": [{"name": "a"}]}
+        self.assertEqual(lw.validate(ok), [])
+        self.assertEqual(lw.validate(dict(ok, schema_version=1)), [])
+        self.assertIn("newer", " ".join(lw.validate(dict(ok, schema_version=2))))
+        self.assertTrue(lw.validate(dict(ok, schema_version="1")))
 
     def test_example_registry_is_valid(self):
         path = os.path.join(ROOT, "skills", "labwright", "hosts.example.json")

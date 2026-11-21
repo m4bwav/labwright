@@ -30,6 +30,7 @@ TIMEOUT = 3.0
 DEFAULT_FLOOR_GB = 100
 DEFAULT_GPU_BUSY_PCT = 15
 ROLES = ("image", "video", "music", "llm", "train")
+SCHEMA_VERSION = 1  # registry format this lw.py reads; absent means 1
 
 
 # ---------------------------------------------------------------- registry
@@ -54,6 +55,11 @@ def load_registry(path: str | None) -> dict:
 
 def validate(reg: dict) -> list[str]:
     problems = []
+    sv = reg.get("schema_version", 1)
+    if not isinstance(sv, int) or sv < 1:
+        problems.append("schema_version must be a positive integer, got %r" % (sv,))
+    elif sv > SCHEMA_VERSION:
+        problems.append("registry schema_version %d is newer than this lw.py reads (%d); update labwright" % (sv, SCHEMA_VERSION))
     hosts = reg.get("hosts")
     if not isinstance(hosts, list) or not hosts:
         return ["registry has no hosts list"]
@@ -86,6 +92,11 @@ HELD_VRAM_GB = 2.0  # idle hosts holding at least this much VRAM say so
 
 def gpu_busy_pct(reg: dict) -> float:
     return float(reg.get("idle", {}).get("gpu_busy_pct", DEFAULT_GPU_BUSY_PCT))
+
+
+def max_pending(reg: dict) -> int | None:
+    v = reg.get("idle", {}).get("max_pending")
+    return int(v) if v is not None else None
 
 
 # ---------------------------------------------------------------- probes (read only)
@@ -194,7 +205,8 @@ def probe_service(svc: dict) -> dict:
 
 
 def host_status(host: dict, reg: dict) -> dict:
-    """Probe one host. state is idle, busy or down, with reasons."""
+    """Probe one host. state is idle, busy, draining or down, with reasons.
+    ready is True only for an idle host that is not draining: up is not ready."""
     st = {"name": host["name"], "roles": host.get("roles", []), "services": [], "reasons": []}
     for svc in host.get("services", []):
         st["services"].append(probe_service(svc))
@@ -206,6 +218,7 @@ def host_status(host: dict, reg: dict) -> dict:
         for s in host.get("stores", []):
             st["stores"].append({"path": s["path"], "kind": s.get("kind", "models"), "free_gb": disk_free_gb(s["path"])})
     up = [s for s in st["services"] if s["up"]]
+    st["ready"] = False
     if st["services"] and not up:
         st["state"] = "down"
         st["reasons"].append("no service answered")
@@ -227,6 +240,14 @@ def host_status(host: dict, reg: dict) -> dict:
         st["reasons"] = busy + st["reasons"]
     else:
         st["state"] = "idle"
+    cap = max_pending(reg)
+    if cap is not None and any(s.get("pending", 0) >= cap for s in up):
+        st["full"] = True
+        st["reasons"].insert(0, "queue full (pending at or above idle.max_pending %d): takes no more work" % cap)
+    if host.get("draining"):
+        st["state"] = "draining"
+        st["reasons"].insert(0, "draining (registry flag): finishes its current work, takes no new jobs")
+    st["ready"] = st["state"] == "idle"
     if gpu and gpu.get("used_gb", 0) >= HELD_VRAM_GB:
         st["vram_free_gb"] = round(gpu["vram_gb"] - gpu["used_gb"], 1)
         st["reasons"].append("%.1f of %.1f GB VRAM held at %d%% load (cached weights or a process); a big model may not fit until it unloads"
@@ -337,9 +358,13 @@ def _pick(reg: dict, role: str, model: str | None, vram: float | None,
         return {"action": "none", "hosts": [], "why": "no registered host fits role %s" % role, "excluded": reasons}
     by_name = {s["name"]: s for s in (statuses or [])}
     sts = [by_name.get(h["name"]) or host_status(h, reg) for h in capable]
+    for s in sts:
+        if s["state"] == "draining":
+            reasons[s["name"]] = "draining: takes no new jobs"
     order = sorted(range(len(capable)), key=lambda i: -float(capable[i].get("speed", 1)))
     idle = [sts[i] for i in order if sts[i]["state"] == "idle"]
-    busy = [sts[i] for i in order if sts[i]["state"] == "busy"]
+    busy = [sts[i] for i in order if sts[i]["state"] == "busy" and not sts[i].get("full")]
+    full = [sts[i] for i in order if sts[i]["state"] == "busy" and sts[i].get("full")]
     if idle:
         chosen = idle if batch else idle[:1]
         why = "idle" if not batch else "split the batch across every idle capable host"
@@ -358,7 +383,11 @@ def _pick(reg: dict, role: str, model: str | None, vram: float | None,
         return {"action": "queue", "hosts": [best["name"]],
                 "why": "every capable host is busy; queue behind it and wait, do not stop its work: "
                        + "; ".join(best["reasons"]), "excluded": reasons}
-    return {"action": "none", "hosts": [], "why": "every capable host is down",
+    if full:
+        return {"action": "none", "hosts": [], "why": "every capable host is busy with a full queue; shed the job now "
+                "(retry later) instead of letting it time out in a queue",
+                "excluded": {s["name"]: "; ".join(s["reasons"]) for s in full} | reasons}
+    return {"action": "none", "hosts": [], "why": "every capable host is down or draining",
             "excluded": {s["name"]: "; ".join(s["reasons"]) for s in sts} | reasons}
 
 
@@ -448,7 +477,7 @@ def doctor(reg: dict, statuses: list[dict]) -> list[str]:
 # ---------------------------------------------------------------- output
 
 def fmt_status(st: dict) -> str:
-    lines = ["%s: %s" % (st["name"], st["state"].upper())]
+    lines = ["%s: %s%s" % (st["name"], st["state"].upper(), " (ready)" if st.get("ready") else "")]
     for s in st["services"]:
         if s["up"]:
             extra = []

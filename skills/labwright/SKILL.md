@@ -16,9 +16,9 @@ The pool of the user's own model servers, read live. Host facts live in the regi
 
 ## Use
 
-- Before quoting a host, a model list or a GPU as free: `LW status` (idle, busy or down, with the reason). The registry is a dated snapshot; the probe is the truth.
+- Before quoting a host, a model list or a GPU as free: `LW status` (idle, busy, draining or down, with the reason; only an idle host is `ready`, since a port that answers is not ready for work). The registry is a dated snapshot; the probe is the truth.
 - Where is a model: `LW where <name>`.
-- Which host for a job: `LW pick --role image|video|music|llm|train [--model M] [--vram GB] [--batch]`. `run` names the idle host (every idle host for `--batch`: split the work across them); `queue` names the busy host to queue behind and wait on ([idle rules](references/idle.md)); `none` means nothing capable is up: say so, never swap in another source silently.
+- Which host for a job: `LW pick --role image|video|music|llm|train [--model M] [--vram GB] [--batch]`. `run` names the idle host (every idle host for `--batch`: split the work across them); `queue` names the busy host to queue behind and wait on ([idle rules](references/idle.md)); `none` means nothing capable is up, or every busy host's queue is full (`idle.max_pending`): shed the job now and retry later rather than let it time out in a queue; say so, never swap in another source silently. To take a host out of rotation, set `"draining": true` on it in the registry: its running work finishes, `pick` sends it nothing new.
 - Before a model download: `LW place --size GB` ([placement](references/placement.md)); then check the model's licence and gating.
 - Out of VRAM before a big job on a local host: `LW free --host H` (guard verdict), then `--apply`; it refuses while anything else runs ([probes](references/probes.md)).
 - Scripts: put global `--json` first (`LW --json pick ...`) for `{ok, data, error}`, exit 0/1.
